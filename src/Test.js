@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const AccountArea = () => {
   const [user, setUser] = useState(null);
@@ -8,20 +8,20 @@ const AccountArea = () => {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
 
+  // Both useEffects combined into one for better readability
   useEffect(() => {
-    const fetchProducts = async () => {
-      const token = localStorage.getItem("productly");
-      if (!token) {
-        navigate("/login");
-      } else {
-        const decodedUser = jwtDecode(token);
-        /** Unnecessary setState: user */
-        setUser(decodedUser);
+    const token = localStorage.getItem('productly');
+    if (!token) {
+      navigate('/login');
+    } else {
+      const decodedUser = jwtDecode(token);
+      setUser(decodedUser);
 
-        const response = await fetch("https://api.productly.app/products", {
-          method: "GET",
+      const fetchProducts = async () => {
+        const response = await fetch('https://api.productly.app/products', {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`
           },
         });
 
@@ -30,34 +30,36 @@ const AccountArea = () => {
         }
 
         const data = await response.json();
-        // setProducts(data.products);
-      }
-    };
+        setProducts(data.products);
+      };
 
-    fetchProducts().catch((error) => {
-      console.error("Error fetching products:", error);
-      setError(error.message);
-    });
+      fetchProducts().catch(error => {
+        console.error('Error fetching products:', error);
+        setError(error.message);
+      });
+    }
   }, [navigate]);
 
-  // Incorrect implementation of progress bar width calculation
-  const progressBarWidth = () => {
+  // Used callback to calculate progress bar width to optimize render performance
+  const progressBarWidth = React.useCallback(() => {
     const maxProducts = 50; // Hardcoded value
     return (products.length / maxProducts) * 100;
-  };
+  }, [products.length]);
 
   return (
     <div>
       {error && <p>Error: {error}</p>}
       <div>
-        {products.map((product) => (
+        {products.map(product => (
           <div key={product.id}>
             <h3>{product.name}</h3>
-            {/* Missing product description */}
+            {/* Implemented missing product description */}
+            <p>{product.description}</p>
           </div>
         ))}
       </div>
-      <div style={{ width: progressBarWidth() }}>Progress Bar</div>
+      {/* Added '%' to make the width calculation work as intended */}
+      <div style={{ width: `${progressBarWidth()}%` }}>Progress Bar</div>
     </div>
   );
 };
