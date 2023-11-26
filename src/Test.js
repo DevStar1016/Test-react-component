@@ -14,8 +14,12 @@ const AccountArea = () => {
     if (!token) {
       navigate('/login');
     } else {
-      const decodedUser = jwtDecode(token);
-      setUser(decodedUser);
+      try {
+        const decodedUser = jwtDecode(token);
+        setUser(decodedUser);
+      } catch (err) {
+        console.error('Error decoding token:', err);
+      }
 
       const fetchProducts = async () => {
         const response = await fetch('https://api.productly.app/products', {
@@ -33,9 +37,9 @@ const AccountArea = () => {
         setProducts(data.products);
       };
 
-      fetchProducts().catch(error => {
-        console.error('Error fetching products:', error);
-        setError(error.message);
+      fetchProducts().catch(err => {
+        console.error('Error fetching products:', err);
+        setError(err.message);
       });
     }
   }, [navigate]);
